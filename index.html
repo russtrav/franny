@@ -608,7 +608,7 @@ footer p{margin:0;max-width:72ch}
         clearTimeout(slow);
         setBusy(false);
         if (typeof r.used_today === "number") { S.used = r.used_today; renderBudget(); }
-        if (r.ok) { remember(q); S.last = r; renderAnswer(q, r); return; }
+        if (r.ok) { if (!r.egg) remember(q); S.last = r; renderAnswer(q, r); return; }
         handleFailure(q, deep, r);
       });
   }
@@ -686,6 +686,12 @@ footer p{margin:0;max-width:72ch}
     r._q = q;
     var el = $("entry");
     var h = '<h2 class="q">' + esc(q) + "</h2>";
+    if (r.egg) {
+      // An easter egg: just the reply, no table, row count or Think harder.
+      el.innerHTML = h + '<p class="answer">' + esc(r.answer) + "</p>";
+      el.hidden = false;
+      return;
+    }
     if (r.deep) h += '<p class="deep-tag">Thought harder' + (r.queries_run > 1 ? ", checked " + r.queries_run + " ways" : "") + "</p>";
     h += '<p class="answer">' + esc(r.answer) + "</p>";
     if (r.reading) h += '<p class="reading">How Franny read it: ' + esc(r.reading) + "</p>";

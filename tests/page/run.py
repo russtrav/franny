@@ -15,6 +15,8 @@ FONT_CSS = """
 @font-face{font-family:'Marcellus SC';font-style:normal;font-weight:400;src:url(https://fonts.gstatic.com/marcellus.woff2) format('woff2');}
 """
 def font_routes(page):
+    if not FONTS.exists():  # fonts are optional; without them the page falls back to system fonts
+        return
     page.route("https://fonts.googleapis.com/**", lambda r: r.fulfill(status=200, content_type="text/css", body=FONT_CSS))
     page.route("https://fonts.gstatic.com/archivo.woff2", lambda r: r.fulfill(status=200, content_type="font/woff2", body=(FONTS/"@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2").read_bytes()))
     page.route("https://fonts.gstatic.com/marcellus.woff2", lambda r: r.fulfill(status=200, content_type="font/woff2", body=(FONTS/"@fontsource/marcellus-sc/files/marcellus-sc-latin-400-normal.woff2").read_bytes()))
@@ -36,7 +38,8 @@ def router(state):
             fx = FX["hello"]
         else:
             q = body.get("question", "").lower()
-            if state.get("cap_hit"): fx = FX["daily_cap"]
+            if "testegg" in q: fx = FX["egg"]  # eggs are answered before the daily cap is checked
+            elif state.get("cap_hit"): fx = FX["daily_cap"]
             elif body.get("deep"): fx = FX["deep"]
             elif "standings" in q: fx = FX["standings"]
             elif "against everyone" in q: fx = FX["record"] if body.get("asker") else FX["needs_asker"]
@@ -132,6 +135,14 @@ with sync_playwright() as p:
             page.wait_for_selector("#notice:not([hidden]) >> text=resets at midnight")
             check("0 questions left" in page.inner_text("#budget"), f"[{tag}] daily cap shows 0 left")
             state["cap_hit"] = False
+
+            # 7b. easter egg: just the reply, no table, no Think harder, not saved as a recent question
+            page.fill("#q", "a testegg question")
+            page.click("#askBtn")
+            page.wait_for_selector("#entry .answer >> text=Egg reply")
+            check(page.locator("#entry table, #entry .empty-rows, #entry .meta, #harderBtn").count() == 0,
+                  f"[{tag}] easter egg shows only the reply")
+            check("testegg" not in page.inner_text("#recent"), f"[{tag}] easter egg isn't saved as a recent question")
 
             # 8. reload remembers passcode + asker, opens without the gate
             page.reload()

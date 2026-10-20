@@ -5,7 +5,7 @@
 //   { action: "health", passcode }                          -> setup check (no secrets returned)
 import { answerQuestion } from "../_shared/league-qa/answer.ts";
 import { ON_FILE } from "../_shared/league-qa/prompt.ts";
-import { BusyError, connectionKind, getChampions, getManagers, logQuestion, readerIdentity, takeUnits, unitsUsedToday } from "../_shared/league-qa/db.ts";
+import { BusyError, connectionKind, easterEgg, getChampions, getManagers, logQuestion, readerIdentity, takeUnits, unitsUsedToday } from "../_shared/league-qa/db.ts";
 import { DEEP_MODEL, FAST_MODEL } from "../_shared/league-qa/claude.ts";
 
 const DAILY_CAP = () => Number(Deno.env.get("LEAGUE_DAILY_CAP") ?? 100);
@@ -102,6 +102,22 @@ Deno.serve(async (req) => {
     const managers = await getManagers();
     const askerRaw = typeof body.asker === "string" ? body.asker.trim().toLowerCase() : "";
     const asker = managers.find((m) => m.name.toLowerCase() === askerRaw)?.name ?? null;
+
+    // Easter eggs answer instantly, cost nothing and don't use the daily budget.
+    const egg = await easterEgg(question);
+    if (egg) {
+      const usedNow = await unitsUsedToday();
+      await logQuestion({
+        client, asker, question, deep: false, model: "easter-egg", sql: null, reading: null, row_count: 0,
+        answer: egg, error_code: null, error_detail: null, queries_run: 0, input_tokens: 0, output_tokens: 0,
+        est_cost_usd: 0, ms: 0,
+      });
+      return json(req, 200, {
+        ok: true, egg: true, answer: egg, reading: "", columns: [], rows: [], row_count: 0, truncated: false,
+        sql: "", deep: false, model: "easter-egg", queries_run: 0, asker,
+        daily_cap: cap, used_today: usedNow, remaining_today: Math.max(cap - usedNow, 0), ms: 0, est_cost_usd: 0,
+      });
+    }
 
     const cost = deep ? DEEP_COST : 1;
     const used = await takeUnits(cost, cap);

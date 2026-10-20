@@ -265,6 +265,20 @@ export async function managerForDiscord(userId: string, names: string[], save = 
   return String(row.manager_name);
 }
 
+/** Easter eggs: canned replies for questions matching a pattern. Cached for 2 minutes. */
+let eggsCache: { at: number; list: { pattern: RegExp; reply: string }[] } | null = null;
+export async function easterEgg(question: string): Promise<string | null> {
+  if (!eggsCache || Date.now() - eggsCache.at > 120_000) {
+    const rows = await getBookkeeper()`select pattern, reply from league_qa.easter_eggs where active order by id`;
+    const list: { pattern: RegExp; reply: string }[] = [];
+    for (const r of rows as unknown as { pattern: string; reply: string }[]) {
+      try { list.push({ pattern: new RegExp(r.pattern, "i"), reply: r.reply }); } catch { /* skip a bad pattern */ }
+    }
+    eggsCache = { at: Date.now(), list };
+  }
+  return eggsCache.list.find((e) => e.pattern.test(question))?.reply ?? null;
+}
+
 export async function discordMembers(): Promise<Record<string, unknown>[]> {
   const rows = await getBookkeeper()`
     select handle, manager_name, discord_user_id is not null as seen from league_qa.discord_members order by manager_name`;

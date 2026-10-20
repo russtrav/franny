@@ -4,7 +4,7 @@
 // with the answer once the shared question logic is done.
 import nacl from "npm:tweetnacl@1.0.3";
 import { answerQuestion, type AskResult } from "./answer.ts";
-import { getManagers, logQuestion, loggedQuestion, managerForDiscord, takeUnits } from "./db.ts";
+import { easterEgg, getManagers, logQuestion, loggedQuestion, managerForDiscord, takeUnits } from "./db.ts";
 
 export const PAGE_URL = "https://russtrav.github.io/franny/";
 const BRASS = 0xC49A3A;
@@ -131,6 +131,18 @@ export async function runQuestion(question: string, who: Who, deep: boolean, pre
   const managers = await getManagers();
   const asker = presetAsker !== undefined ? presetAsker : await managerForDiscord(who.id, who.names);
   const cap = DAILY_CAP();
+
+  // Easter eggs answer instantly, cost nothing and don't use the daily budget.
+  const egg = await easterEgg(question);
+  if (egg) {
+    await logQuestion({
+      client: "discord", asker, question, deep: false, model: "easter-egg", sql: null, reading: null, row_count: 0,
+      answer: egg, error_code: null, error_detail: null, queries_run: 0, input_tokens: 0, output_tokens: 0,
+      est_cost_usd: 0, ms: 0,
+    });
+    return { embeds: [{ color: BRASS, title: cut(question, 256), description: egg }], allowed_mentions: { parse: [] } };
+  }
+
   const used = await takeUnits(deep ? DEEP_COST : 1, cap);
   if (used === null) {
     return noticeMessage(question, deep

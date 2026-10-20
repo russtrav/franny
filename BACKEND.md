@@ -108,5 +108,27 @@ insert into league_qa.discord_members (handle, manager_name) values ('their_user
 on conflict (handle) do update set manager_name = excluded.manager_name;
 ```
 
+Registered command: `/franny` (application 1562110932866310154). Add Franny to a server with
+`https://discord.com/oauth2/authorize?client_id=1562110932866310154&scope=bot+applications.commands&permissions=0`
+(Public Bot is off, so only the app owner can use that link). The username list lives only in the
+database, not in this public repo; `?admin=members` shows it.
+
 Tests: `deno test -A tests/discord_test.ts` plays Discord (signed requests, PING, deferred reply,
 table width, Think harder button).
+
+## Easter eggs
+
+`league_qa.easter_eggs` holds canned replies Franny gives instead of looking anything up, on both the
+page and Discord. `pattern` is a case-insensitive JavaScript regular expression checked against the
+question; the first active match wins. Eggs answer instantly, cost nothing and don't use the daily
+budget, and they're logged with `model = 'easter-egg'`. Changes show up within 2 minutes. The replies
+live only in the database so they stay a surprise.
+
+```sql
+-- Add one (\b = word edge, so "fumbles" matches but "fumbler" doesn't)
+insert into league_qa.easter_eggs (pattern, reply) values ('\bfumbles?\b', 'Your reply here');
+
+-- See them, or switch one off
+select id, pattern, reply, active from league_qa.easter_eggs order by id;
+update league_qa.easter_eggs set active = false where id = 1;
+```
