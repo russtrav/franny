@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Franny</title>
+<meta name="description" content="Ask Franny anything about The Franchise since 2011.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#EDF0F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14213A" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='14' width='56' height='36' rx='5' fill='%23C49A3A'/%3E%3Crect x='9' y='19' width='46' height='26' rx='3' fill='none' stroke='%237A5A17' stroke-width='2'/%3E%3Ctext x='32' y='41' text-anchor='middle' font-family='Georgia,serif' font-size='24' fill='%233A2A0E'%3EF%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Marcellus+SC&display=swap">
+<style>
+/* Franny: The Franchise record book.
+   Identity: the league trophy. The wordmark and the champions' plaque are engraved brass on walnut;
+   everything else is quiet navy-on-chalk so the question and answer come first. */
+:root{
+  --chalk:#EDF0F3; --panel:#FFFFFF; --panel-2:#F5F7F9; --ink:#15233D; --muted:#56647A;
+  --line:#CDD4DD; --line-soft:#E2E7ED;
+  --action:#1E3A6E; --on-action:#FFFFFF; --action-soft:#E1E8F4;
+  --brass:#C49A3A; --brass-hi:#E6C878; --brass-lo:#8C6A1E; --engrave:#3A2A0E;
+  --walnut:#3B2618; --walnut-hi:#563A26;
+  --bad:#A3271F; --bad-soft:#F8E3E0; --warn-soft:#FBF1D6;
+  --plate:"Marcellus SC", "Copperplate", "Times New Roman", serif;
+  --ui:"Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono:ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --chalk:#14213A; --panel:#1A2A47; --panel-2:#20314F; --ink:#E6EAF0; --muted:#A3AFC2;
+    --line:#33466A; --line-soft:#283A5B;
+    --action:#B9CCF2; --on-action:#14213A; --action-soft:#24375A;
+    --bad:#F09A8F; --bad-soft:#3F2428; --warn-soft:#3A3322;
+    --walnut:#2B1B11; --walnut-hi:#43301F;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --chalk:#14213A; --panel:#1A2A47; --panel-2:#20314F; --ink:#E6EAF0; --muted:#A3AFC2;
+  --line:#33466A; --line-soft:#283A5B;
+  --action:#B9CCF2; --on-action:#14213A; --action-soft:#24375A;
+  --bad:#F09A8F; --bad-soft:#3F2428; --warn-soft:#3A3322;
+  --walnut:#2B1B11; --walnut-hi:#43301F;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--chalk);color:var(--ink);font:16px/1.5 var(--ui);font-variation-settings:"wdth" 100;-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--action);outline-offset:2px;border-radius:6px}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{max-width:1120px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left)) 0 max(16px,env(safe-area-inset-right))}
+
+/* ---------- brass plate (wordmark and plaque) ---------- */
+.plate{
+  position:relative;display:inline-flex;flex-direction:column;justify-content:center;
+  background:linear-gradient(170deg,var(--brass-hi) 0%,var(--brass) 45%,var(--brass-lo) 100%);
+  color:var(--engrave);border-radius:6px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.25),0 1px 2px rgba(0,0,0,.25);
+}
+.plate::after{content:"";position:absolute;inset:4px;border:1px solid rgba(58,42,14,.45);border-radius:3px;pointer-events:none}
+.engraved{font-family:var(--plate);text-shadow:0 1px 0 rgba(255,255,255,.4);letter-spacing:.04em}
+
+/* ---------- header ---------- */
+.mast{padding-top:max(18px,env(safe-area-inset-top))}
+.mast .wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.brand .plate{padding:6px 16px 7px}
+.brand .engraved{font-size:30px;line-height:1}
+.brand p{margin:0;color:var(--muted);font-size:15px;line-height:1.3}
+.who{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted)}
+.who b{color:var(--ink);font-weight:650}
+.linkish{background:none;border:0;padding:4px 2px;color:var(--action);font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+
+/* ---------- layout ---------- */
+main{padding:22px 0 56px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;align-items:start}
+@media (min-width:980px){.cols{grid-template-columns:minmax(0,1fr) 300px;gap:40px}}
+
+/* ---------- ask ---------- */
+.ask h1{margin:0 0 12px;font-weight:800;font-variation-settings:"wdth" 112;font-size:clamp(28px,5.4vw,40px);line-height:1.05;letter-spacing:-.01em;text-wrap:balance}
+.askbar{display:flex;gap:8px;align-items:stretch}
+.askbar input{flex:1 1 auto;min-width:0;border:2px solid var(--line);background:var(--panel);border-radius:12px;padding:13px 15px;font-size:17px}
+.askbar input:focus{border-color:var(--action);outline:none}
+.askbar input::placeholder{color:var(--muted)}
+.btn{border:2px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 16px;font-weight:650;white-space:nowrap}
+.btn:hover{border-color:var(--action)}
+.btn.primary{background:var(--action);border-color:var(--action);color:var(--on-action);padding-inline:22px}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.small{padding:7px 13px;font-size:15px;border-radius:10px;border-width:1.5px}
+.examples{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 0;padding:0;list-style:none}
+.examples button{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:6px 13px;font-size:14.5px;line-height:1.3;text-align:left}
+.examples button:hover{border-color:var(--action);background:var(--action-soft)}
+.examples button:disabled{opacity:.5;cursor:default}
+.recent-label{margin:14px 0 0;font-size:14px;color:var(--muted)}
+.budget{margin:12px 0 0;font-size:14px;color:var(--muted)}
+.notice{margin:14px 0 0;border-radius:12px;padding:12px 14px;background:var(--warn-soft);font-size:15px;max-width:70ch;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.notice.bad{background:var(--bad-soft)}
+.notice p{margin:0;flex:1 1 260px}
+
+/* ---------- answer ---------- */
+.entry{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.entry .q{margin:0;font-weight:750;font-variation-settings:"wdth" 108;font-size:22px;line-height:1.2;text-wrap:balance}
+.entry .deep-tag{font-size:13.5px;color:var(--muted);margin:-8px 0 0}
+.answer{margin:0;font-size:19px;line-height:1.55;max-width:64ch}
+.reading{margin:0;font-size:14.5px;color:var(--muted);max-width:70ch}
+.working{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:16px;margin:0}
+.dots{display:inline-flex;gap:5px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--brass);animation:pulse 1.1s ease-in-out infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes pulse{0%,80%,100%{opacity:.25;transform:scale(.85)}40%{opacity:1;transform:scale(1)}}
+.tablewrap{overflow:auto;border:1px solid var(--line-soft);border-radius:10px;max-height:440px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:14.5px;font-variant-numeric:tabular-nums}
+th{position:sticky;top:0;background:var(--panel-2);text-align:left;font-weight:650;font-size:13.5px;color:var(--muted);padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+td.none{color:var(--muted)}
+.meta{margin:0;font-size:13.5px;color:var(--muted)}
+details.how summary{cursor:pointer;font-size:14.5px;font-weight:600;color:var(--action);width:max-content;max-width:100%}
+details.how pre{margin:8px 0 0;background:var(--panel-2);border:1px solid var(--line-soft);border-radius:8px;padding:12px;font:13px/1.5 var(--mono);overflow-x:auto;white-space:pre}
+.harder{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding-top:4px;border-top:1px solid var(--line-soft)}
+.harder p{margin:0;font-size:14px;color:var(--muted);flex:1 1 240px}
+.empty-rows{margin:0;padding:14px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:15px}
+
+/* welcome (before the first question) */
+.welcome{margin-top:22px;padding:4px 2px}
+.welcome p{margin:0 0 10px;max-width:60ch;font-size:16.5px}
+.knows{display:grid;grid-template-columns:minmax(0,1fr);gap:10px 28px;margin-top:14px;font-size:15px}
+@media (min-width:640px){.knows{grid-template-columns:1fr 1fr}}
+.knows h2{margin:0 0 6px;font-size:15px;font-weight:700}
+.knows ul{margin:0;padding-left:18px;color:var(--muted)}
+.knows li{margin:2px 0}
+
+/* ---------- plaque ---------- */
+.rail h2{margin:0 0 4px;font-weight:750;font-variation-settings:"wdth" 108;font-size:20px}
+.rail .sub{margin:0 0 12px;font-size:14px;color:var(--muted)}
+.plaque{
+  background:linear-gradient(180deg,var(--walnut-hi),var(--walnut));
+  border-radius:12px;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 6px rgba(0,0,0,.18);
+}
+@media (min-width:980px){.plaque{grid-template-columns:1fr}}
+.plaque .plate{width:100%;border:0;padding:8px 12px 9px;text-align:center;font:inherit;color:var(--engrave)}
+.plaque .plate:hover{filter:brightness(1.06)}
+.plaque .plate:disabled{cursor:default;filter:saturate(.7)}
+.plaque .plate .yr{font-family:var(--plate);font-size:13px;line-height:1.1;opacity:.85}
+.plaque .plate .nm{font-family:var(--plate);font-size:19px;line-height:1.15;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+.plaque .plate .tm{font-family:var(--ui);font-size:11.5px;line-height:1.25;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plaque .plate.open{background:linear-gradient(170deg,#d9c79a,#b9a26a 50%,#8f7a45)}
+.plaque .plate.open .nm{opacity:.55}
+.plaque-note{margin:8px 2px 0;font-size:13.5px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){
+  .plaque.engraving .plate{animation:set .32s ease-out both}
+}
+@keyframes set{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ---------- gate and picker ---------- */
+.gate{min-height:calc(100vh - 120px);display:grid;place-items:center;padding-block:24px 56px}
+.gate-card p{text-wrap:pretty}
+.gate-card h1{text-wrap:balance}
+.gate-card{width:min(440px,100%);text-align:center}
+.gate-card .plate{padding:10px 26px 12px;margin-bottom:18px}
+.gate-card .plate .engraved{font-size:44px;line-height:1}
+.gate-card h1{margin:0 0 6px;font-weight:800;font-variation-settings:"wdth" 110;font-size:26px;line-height:1.15}
+.gate-card p{margin:0 0 16px;color:var(--muted)}
+.gate-form{display:flex;gap:8px}
+.gate-form input{flex:1 1 auto;min-width:0;border:2px solid var(--line);background:var(--panel);border-radius:12px;padding:13px 15px;font-size:17px;text-align:center}
+.gate-form input:focus{border-color:var(--action);outline:none}
+.gate .notice{justify-content:center;text-align:center;margin-inline:auto}
+
+.picker{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:rgba(10,18,33,.55)}
+.picker-card{width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--panel);border-radius:18px;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.picker-card h2{margin:0 0 4px;font-weight:800;font-variation-settings:"wdth" 110;font-size:24px}
+.picker-card p{margin:0 0 14px;color:var(--muted);font-size:15px}
+.names{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.names button{border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:11px 10px;font-weight:650;font-size:16px}
+.names button:hover,.names button[aria-pressed="true"]{border-color:var(--action);background:var(--action-soft)}
+.past{margin-top:12px}
+.past summary{cursor:pointer;color:var(--action);font-weight:600;font-size:15px;width:max-content}
+.past .names{margin-top:8px}
+.picker-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
+.picker-foot p{margin:0;font-size:13.5px;flex:1 1 220px}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);padding:18px 0 max(28px,env(safe-area-inset-bottom));font-size:14px;color:var(--muted)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;align-items:baseline}
+footer p{margin:0;max-width:72ch}
+
+@media (max-width:560px){
+  /* one swipeable row of examples instead of eight stacked lines */
+  .examples{flex-wrap:nowrap;overflow-x:auto;margin-inline:-16px;padding:2px 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .examples::-webkit-scrollbar{display:none}
+  .examples li{flex:none}
+  .askbar{flex-wrap:wrap}
+  .askbar input{flex-basis:100%}
+  .askbar .btn{flex:1 1 auto}
+  .entry{padding:16px;border-radius:14px}
+  .entry .q{font-size:20px}
+  .answer{font-size:17.5px}
+  .brand .engraved{font-size:26px}
+  .gate-form{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){.dots i{animation:none;opacity:.7}}
+</style>
+</head>
+<body>
+
+<!-- Locked: ask for the league passcode -->
+<section class="gate wrap" id="gate" hidden aria-labelledby="gateTitle">
+  <div class="gate-card">
+    <div class="plate"><span class="engraved">Franny</span></div>
+    <h1 id="gateTitle">The Franchise record book</h1>
+    <p>Enter the league passcode. This device will remember it.</p>
+    <form class="gate-form" id="gateForm" autocomplete="off">
+      <label for="code" class="sr">League passcode</label>
+      <input id="code" name="code" type="text" inputmode="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="League passcode" required>
+      <button class="btn primary" type="submit" id="gateBtn">Unlock</button>
+    </form>
+    <div class="notice" id="gateNotice" role="status" hidden><p></p></div>
+  </div>
+</section>
+
+<!-- Unlocked -->
+<div id="app" hidden>
+  <header class="mast">
+    <div class="wrap">
+      <div class="brand">
+        <div class="plate"><span class="engraved">Franny</span></div>
+        <p>The Franchise<br>record book</p>
+      </div>
+      <div class="who" id="who"></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="cols">
+      <div>
+        <section class="ask" aria-labelledby="askTitle">
+          <h1 id="askTitle">Ask anything about the league since 2011</h1>
+          <form class="askbar" id="askForm" autocomplete="off">
+            <label for="q" class="sr">Your question</label>
+            <input id="q" name="q" type="text" maxlength="300" enterkeyhint="search" placeholder="Who has the most championships?">
+            <button type="submit" class="btn primary" id="askBtn">Ask</button>
+          </form>
+          <ul class="examples" id="examples" aria-label="Example questions"></ul>
+          <p class="recent-label" id="recentLabel" hidden>Asked on this device</p>
+          <ul class="examples" id="recent" aria-label="Your recent questions" hidden></ul>
+          <p class="budget" id="budget" aria-live="polite"></p>
+          <div class="notice" id="notice" role="status" hidden><p></p></div>
+        </section>
+
+        <section class="welcome" id="welcome" aria-labelledby="welcomeTitle">
+          <h2 id="welcomeTitle" class="sr">What Franny knows</h2>
+          <p>Franny looks your question up in the league database and answers in a sentence or two, with the numbers underneath so you can check.</p>
+          <div class="knows">
+            <div>
+              <h2>On file</h2>
+              <ul>
+                <li>Every regular-season score, 2011 to 2025</li>
+                <li>Standings, playoff spots, champions and runners-up</li>
+                <li>Auction prices and keepers, 2011 to 2025</li>
+                <li>Player weekly points and lineups for 2013 only</li>
+              </ul>
+            </div>
+            <div>
+              <h2>Not on file yet</h2>
+              <ul>
+                <li>Playoff game scores</li>
+                <li>The 2026 season</li>
+                <li>Player stats outside 2013</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="entry" id="entry" aria-live="polite" hidden></section>
+      </div>
+
+      <aside class="rail" aria-labelledby="plaqueTitle">
+        <h2 id="plaqueTitle">Engraved so far</h2>
+        <p class="sub">Every champion. Tap a plate for that season's final standings.</p>
+        <div class="plaque" id="plaque"></div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p>The league shares <span id="capText">100</span> questions a day, and Think harder uses <span id="deepText">5</span>. Questions asked here are saved, and Russ can read them.</p>
+      <button type="button" class="linkish" id="forget">Forget this device</button>
+    </div>
+  </footer>
+</div>
+
+<!-- Who are you? -->
+<div class="picker" id="picker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle" hidden>
+  <div class="picker-card">
+    <h2 id="pickerTitle">Who are you?</h2>
+    <p id="pickerWhy">So questions like “What’s my record against Dave?” know who “my” is. This device will remember.</p>
+    <div class="names" id="activeNames"></div>
+    <details class="past" id="pastWrap">
+      <summary>Past managers</summary>
+      <div class="names" id="pastNames"></div>
+    </details>
+    <div class="picker-foot">
+      <p class="meta">Anyone can pick any name. It only changes who “I” and “my” mean.</p>
+      <button type="button" class="btn small" id="skipPick">Just browsing</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var ENDPOINT = "https://seqvzektwxxypdcqgtve.supabase.co/functions/v1/league-ask";
+  var KEY = { code: "franny.passcode", asker: "franny.asker", skipped: "franny.skipped", recent: "franny.recent", hello: "franny.hello" };
+
+  var EXAMPLES = [
+    "Longest win streak of all time",
+    "Who has the most championships?",
+    "Highest-scoring week ever",
+    "What's my record against everyone?",
+    "Best record that missed the playoffs",
+    "Most expensive keeper ever",
+    "Lowest score that still won",
+    "Who finished last the most?"
+  ];
+
+  /* ---------- storage (best effort: some browsers block it) ---------- */
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+
+  var S = {
+    code: store.get(KEY.code),
+    asker: store.get(KEY.asker),
+    managers: [], champions: [], cap: 100, deepCost: 5, used: 0,
+    busy: false, last: null, pendingAfterPick: null
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  /* ---------- talking to Franny ---------- */
+  // Sent as text/plain so the browser makes a simple request (no preflight). The function reads JSON either way.
+  function call(body, timeoutMs) {
+    var ctl = new AbortController();
+    var timer = setTimeout(function () { ctl.abort(); }, timeoutMs || 45000);
+    return fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=UTF-8" },
+      body: JSON.stringify(body),
+      signal: ctl.signal
+    }).then(function (res) {
+      return res.json().catch(function () { return { ok: false, code: "failed", message: "Franny sent back something this page couldn't read. Ask again in a moment." }; })
+        .then(function (data) { data._status = res.status; return data; });
+    }, function (err) {
+      var timedOut = err && err.name === "AbortError";
+      return { ok: false, code: timedOut ? "timeout" : "offline",
+        message: timedOut ? "That took too long, so the page stopped waiting. Ask again in a moment."
+                          : "Couldn't reach Franny. Check your connection and try again." };
+    }).finally(function () { clearTimeout(timer); });
+  }
+
+  /* ---------- gate ---------- */
+  function showGate(message) {
+    $("app").hidden = true;
+    $("gate").hidden = false;
+    setNotice($("gateNotice"), message, true);
+    setTimeout(function () { $("code").focus(); }, 0);
+  }
+
+  $("gateForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var code = $("code").value.trim();
+    if (!code) return;
+    $("gateBtn").disabled = true;
+    $("gateBtn").textContent = "Checking…";
+    hello(code).then(function (ok) {
+      $("gateBtn").disabled = false;
+      $("gateBtn").textContent = "Unlock";
+      if (ok) { $("code").value = ""; }
+    });
+  });
+
+  function hello(code) {
+    return call({ action: "hello", passcode: code }, 20000).then(function (r) {
+      if (r.ok) {
+        S.code = code;
+        store.set(KEY.code, code);
+        applyHello(r);
+        store.set(KEY.hello, JSON.stringify({ managers: r.managers, champions: r.champions, daily_cap: r.daily_cap, deep_cost: r.deep_cost }));
+        if (S.asker && !S.managers.some(function (m) { return m.name === S.asker; })) { S.asker = null; store.del(KEY.asker); }
+        openApp();
+        return true;
+      }
+      if (r.code === "bad_passcode") {
+        var hadOne = !!store.get(KEY.code);
+        store.del(KEY.code);
+        S.code = null;
+        showGate(hadOne && $("gate").hidden
+          ? "The league passcode has changed. Enter the new one."
+          : "That passcode isn't right. Ask in the league chat for it.");
+        return false;
+      }
+      if ($("gate").hidden && S.code) {
+        // Saved passcode but Franny is unreachable: still open the page, and say so.
+        openApp();
+        setNotice($("notice"), r.message || "Couldn't reach Franny. Check your connection and try again.", true);
+        return true;
+      }
+      showGate(r.message || "Couldn't reach Franny. Check your connection and try again.");
+      return false;
+    });
+  }
+
+  function applyHello(r) {
+    S.managers = r.managers || [];
+    S.champions = r.champions || [];
+    S.cap = r.daily_cap || 100;
+    S.deepCost = r.deep_cost || 5;
+    if (typeof r.used_today === "number") S.used = r.used_today;
+  }
+
+  /* ---------- app ---------- */
+  function openApp() {
+    $("gate").hidden = true;
+    $("app").hidden = false;
+    renderWho();
+    renderExamples();
+    renderRecent();
+    renderBudget();
+    renderPlaque();
+    $("capText").textContent = S.cap;
+    $("deepText").textContent = S.deepCost;
+    if (!S.asker && !store.get(KEY.skipped) && S.managers.length && $("picker").hidden) openPicker(null);
+  }
+
+  function renderWho() {
+    var el = $("who");
+    if (S.asker) {
+      el.innerHTML = 'Asking as <b>' + esc(S.asker) + '</b> <button type="button" class="linkish" id="changeWho">Change</button>';
+    } else {
+      el.innerHTML = '<button type="button" class="linkish" id="changeWho">Tell Franny who you are</button>';
+    }
+    $("changeWho").addEventListener("click", function () { openPicker(null); });
+  }
+
+  function renderExamples() {
+    $("examples").innerHTML = EXAMPLES.map(function (q) {
+      return '<li><button type="button" data-ask="' + esc(q) + '">' + esc(q) + '</button></li>';
+    }).join("");
+  }
+
+  function loadRecent() {
+    try { var a = JSON.parse(store.get(KEY.recent) || "[]"); return Array.isArray(a) ? a.filter(function (x) { return typeof x === "string"; }) : []; }
+    catch (e) { return []; }
+  }
+  function remember(q) {
+    var a = loadRecent().filter(function (x) { return x.toLowerCase() !== q.toLowerCase(); });
+    a.unshift(q);
+    store.set(KEY.recent, JSON.stringify(a.slice(0, 5)));
+    renderRecent();
+  }
+  function renderRecent() {
+    var a = loadRecent().filter(function (q) { return EXAMPLES.indexOf(q) < 0; });
+    $("recent").hidden = $("recentLabel").hidden = !a.length;
+    $("recent").innerHTML = a.map(function (q) {
+      return '<li><button type="button" data-ask="' + esc(q) + '">' + esc(q) + '</button></li>';
+    }).join("");
+  }
+
+  function renderBudget() {
+    var left = Math.max(S.cap - S.used, 0);
+    $("budget").textContent = left === 1 ? "1 question left today for the league." : left + " questions left today for the league.";
+  }
+
+  function renderPlaque() {
+    var byYear = {};
+    S.champions.forEach(function (c) { byYear[c.year] = c; });
+    var years = [];
+    var first = 2011, last = Math.max(2025, S.champions.reduce(function (m, c) { return Math.max(m, c.year); }, 0));
+    for (var y = first; y <= last; y++) years.push(y);
+    var html = years.map(function (y) {
+      var c = byYear[y];
+      if (!c) return "";
+      return '<button type="button" class="plate" data-ask="Show the ' + y + ' final standings" title="Show the ' + y + ' final standings">' +
+        '<span class="yr">' + y + '</span><span class="nm">' + esc(c.manager) + '</span>' +
+        (c.team_name ? '<span class="tm">' + esc(c.team_name) + '</span>' : '') + '</button>';
+    }).join("");
+    html += '<div class="plate open" aria-hidden="true"><span class="yr">' + (last + 1) + '</span><span class="nm">To be engraved</span></div>';
+    var plaque = $("plaque");
+    plaque.innerHTML = html;
+    if (!plaque.dataset.done) {
+      plaque.dataset.done = "1";
+      plaque.classList.add("engraving");
+      Array.prototype.forEach.call(plaque.children, function (p, i) { p.style.animationDelay = (i * 35) + "ms"; });
+    }
+  }
+
+  /* ---------- picker ---------- */
+  function openPicker(why, then) {
+    S.pendingAfterPick = then || null;
+    $("pickerWhy").textContent = why || "So questions like “What’s my record against Dave?” know who “my” is. This device will remember.";
+    var active = S.managers.filter(function (m) { return m.active; });
+    var past = S.managers.filter(function (m) { return !m.active; });
+    var btn = function (m) {
+      return '<button type="button" data-pick="' + esc(m.name) + '" aria-pressed="' + (m.name === S.asker) + '">' + esc(m.name) + '</button>';
+    };
+    $("activeNames").innerHTML = active.map(btn).join("");
+    $("pastNames").innerHTML = past.map(btn).join("");
+    $("pastWrap").hidden = !past.length;
+    $("picker").hidden = false;
+    var first = $("picker").querySelector('[aria-pressed="true"]') || $("picker").querySelector("[data-pick]");
+    if (first) first.focus();
+  }
+  function closePicker() {
+    $("picker").hidden = true;
+    var then = S.pendingAfterPick;
+    S.pendingAfterPick = null;
+    if (then) then(); else $("q").focus();
+  }
+  $("picker").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-pick]");
+    if (b) {
+      S.asker = b.getAttribute("data-pick");
+      store.set(KEY.asker, S.asker);
+      store.del(KEY.skipped);
+      renderWho();
+      closePicker();
+      return;
+    }
+    if (e.target === $("picker")) { store.set(KEY.skipped, "1"); S.pendingAfterPick = null; closePicker(); }
+  });
+  $("skipPick").addEventListener("click", function () { store.set(KEY.skipped, "1"); S.pendingAfterPick = null; closePicker(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !$("picker").hidden) { store.set(KEY.skipped, "1"); S.pendingAfterPick = null; closePicker(); }
+  });
+
+  /* ---------- asking ---------- */
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-ask]");
+    if (b && !S.busy) ask(b.getAttribute("data-ask"), false);
+  });
+  $("askForm").addEventListener("submit", function (e) { e.preventDefault(); ask($("q").value, false); });
+
+  function setBusy(on) {
+    S.busy = on;
+    $("askBtn").disabled = on;
+    $("q").readOnly = on;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-ask]"), function (b) { b.disabled = on; });
+  }
+
+  function ask(q, deep) {
+    q = String(q || "").trim().replace(/\s+/g, " ");
+    if (!q || S.busy) return;
+    if (!S.code) { showGate(); return; }
+    $("q").value = q;
+    setNotice($("notice"), null);
+    $("welcome").hidden = true;
+    setBusy(true);
+    renderWorking(q, deep);
+    var slow = setTimeout(function () {
+      var w = $("workingText");
+      if (w) w.textContent = deep ? "Still digging. Tough questions can take up to half a minute." : "Still working on it. Some questions take a few more seconds.";
+    }, deep ? 12000 : 7000);
+
+    call({ action: "ask", passcode: S.code, question: q, asker: S.asker, deep: !!deep, client: "web" }, deep ? 110000 : 45000)
+      .then(function (r) {
+        clearTimeout(slow);
+        setBusy(false);
+        if (typeof r.used_today === "number") { S.used = r.used_today; renderBudget(); }
+        if (r.ok) { remember(q); S.last = r; renderAnswer(q, r); return; }
+        handleFailure(q, deep, r);
+      });
+  }
+
+  function renderWorking(q, deep) {
+    var el = $("entry");
+    el.hidden = false;
+    el.innerHTML = '<h2 class="q">' + esc(q) + '</h2>' +
+      '<p class="working"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span id="workingText">' +
+      (deep ? "Thinking harder. Franny may check a few things before answering." : "Checking the record book…") + '</span></p>';
+    // Bring the answer area into view if it's off-screen (a plaque tap near the bottom of a phone, say).
+    var top = el.getBoundingClientRect().top;
+    if (top < 0 || top > window.innerHeight * 0.6) {
+      el.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    }
+  }
+
+  function handleFailure(q, deep, r) {
+    var code = r.code;
+    if (code === "bad_passcode") { store.del(KEY.code); S.code = null; $("entry").hidden = true; showGate("The league passcode has changed. Enter the new one."); return; }
+    if (code === "needs_asker") {
+      restoreEntry();
+      openPicker("That question is about you. Pick who you are and Franny will ask it again.", function () {
+        if (S.asker) ask(q, deep);
+      });
+      return;
+    }
+    if (code === "daily_cap") { S.used = S.cap; renderBudget(); }
+    var msg = r.message || "Something went wrong. Ask again in a moment.";
+    var actions = [];
+    if (code === "no_query" && !deep) actions.push({ label: "Think harder", run: function () { ask(q, true); } });
+    if (code === "busy" || code === "timeout" || code === "offline" || code === "failed") actions.push({ label: "Ask again", run: function () { ask(q, deep); } });
+    restoreEntry();
+    setNotice($("notice"), msg, code !== "daily_cap", actions);
+  }
+
+  // After a failed question, put the previous answer back (or the welcome text if there wasn't one).
+  function restoreEntry() {
+    if (S.last) { renderAnswer(S.last._q, S.last); }
+    else { $("entry").hidden = true; $("welcome").hidden = false; }
+  }
+
+  /* ---------- answer ---------- */
+  function isNum(v) { return typeof v === "number" || (typeof v === "string" && /^-?\d+(\.\d+)?$/.test(v)); }
+  function label(k) {
+    var t = String(k).replace(/_/g, " ").trim();
+    t = t.replace(/\bpf\b/i, "points for").replace(/\bpa\b/i, "points against").replace(/\bpct\b/i, "win %");
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+  function fmt(v, key) {
+    if (v === null || v === undefined || v === "") return '<td class="none">—</td>';
+    if (typeof v === "boolean") return "<td>" + (v ? "Yes" : "No") + "</td>";
+    if (typeof v === "object") return "<td>" + esc(JSON.stringify(v)) + "</td>";
+    if (isNum(v)) {
+      var s = String(v);
+      // Years and weeks read better without thousands separators.
+      var plain = /year|season|week|rank|finish/i.test(key) || Math.abs(Number(v)) < 10000;
+      if (!plain) s = Number(v).toLocaleString("en-US", { maximumFractionDigits: 2 });
+      return '<td class="n">' + esc(s) + "</td>";
+    }
+    return "<td>" + esc(v) + "</td>";
+  }
+  function table(cols, rows) {
+    if (!rows.length) return '<p class="empty-rows">Nothing in the record book matched.</p>';
+    var keys = cols && cols.length ? cols : Object.keys(rows[0]);
+    var numeric = keys.map(function (k) { return rows.every(function (r) { return r[k] == null || isNum(r[k]); }); });
+    return '<div class="tablewrap" tabindex="0" aria-label="The numbers behind the answer"><table><thead><tr>' +
+      keys.map(function (k, i) { return '<th scope="col"' + (numeric[i] ? ' class="n"' : "") + ">" + esc(label(k)) + "</th>"; }).join("") +
+      "</tr></thead><tbody>" +
+      rows.map(function (r) { return "<tr>" + keys.map(function (k) { return fmt(r[k], k); }).join("") + "</tr>"; }).join("") +
+      "</tbody></table></div>";
+  }
+
+  function renderAnswer(q, r) {
+    r._q = q;
+    var el = $("entry");
+    var h = '<h2 class="q">' + esc(q) + "</h2>";
+    if (r.deep) h += '<p class="deep-tag">Thought harder' + (r.queries_run > 1 ? ", checked " + r.queries_run + " ways" : "") + "</p>";
+    h += '<p class="answer">' + esc(r.answer) + "</p>";
+    if (r.reading) h += '<p class="reading">How Franny read it: ' + esc(r.reading) + "</p>";
+    h += table(r.columns, r.rows || []);
+    h += '<p class="meta">' + (r.row_count === 1 ? "1 row" : (r.row_count || 0) + " rows") + (r.truncated ? ", first 200 shown" : "") + "</p>";
+    if (r.sql) h += '<details class="how"><summary>Show the database query</summary><pre>' + esc(r.sql) + "</pre></details>";
+    if (!r.deep) {
+      var left = Math.max(S.cap - S.used, 0);
+      h += '<div class="harder"><p>Not quite right? Franny can take more time and double-check. Uses ' + S.deepCost + ' of today’s questions.</p>' +
+        '<button type="button" class="btn small" id="harderBtn"' + (left < S.deepCost ? " disabled" : "") + '>Think harder</button></div>';
+    }
+    el.innerHTML = h;
+    el.hidden = false;
+    var hb = $("harderBtn");
+    if (hb) hb.addEventListener("click", function () { ask(q, true); });
+  }
+
+  /* ---------- notices ---------- */
+  function setNotice(el, msg, bad, actions) {
+    if (!msg) { el.hidden = true; return; }
+    el.className = "notice" + (bad ? " bad" : "");
+    el.innerHTML = "<p></p>";
+    el.firstChild.textContent = msg;
+    (actions || []).forEach(function (a) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "btn small"; b.textContent = a.label;
+      b.addEventListener("click", function () { setNotice(el, null); a.run(); });
+      el.appendChild(b);
+    });
+    el.hidden = false;
+  }
+
+  $("forget").addEventListener("click", function () {
+    [KEY.code, KEY.asker, KEY.skipped, KEY.recent, KEY.hello].forEach(store.del);
+    S.code = null; S.asker = null; S.last = null;
+    $("entry").hidden = true; $("welcome").hidden = false;
+    showGate("This device no longer remembers the passcode or who you are.");
+    $("gateNotice").className = "notice";
+  });
+
+  /* ---------- start ---------- */
+  if (S.code) {
+    // Open straight away with what this device remembers; hello() refreshes names, champions and the budget.
+    try { var cached = JSON.parse(store.get(KEY.hello) || "null"); if (cached) { applyHello(cached); openApp(); } } catch (e) {}
+    hello(S.code);
+  } else {
+    showGate();
+  }
+})();
+</script>
+</body>
+</html>
