@@ -218,15 +218,55 @@ export type LogEntry = {
   ms: number;
 };
 
-export async function logQuestion(e: LogEntry): Promise<void> {
+/** Log one question. Returns the log row id (used by Discord's Think harder button), or null if logging failed. */
+export async function logQuestion(e: LogEntry): Promise<number | null> {
   try {
-    await getBookkeeper()`insert into league_qa.questions
+    const rows = await getBookkeeper()`insert into league_qa.questions
       (client, asker, question, deep, model, sql, reading, row_count, answer, error_code, error_detail,
        queries_run, input_tokens, output_tokens, est_cost_usd, ms)
       values (${e.client}, ${e.asker}, ${e.question.slice(0, 500)}, ${e.deep}, ${e.model}, ${e.sql},
               ${e.reading}, ${e.row_count}, ${e.answer}, ${e.error_code}, ${e.error_detail?.slice(0, 1000) ?? null},
-              ${e.queries_run}, ${e.input_tokens}, ${e.output_tokens}, ${e.est_cost_usd}, ${e.ms})`;
+              ${e.queries_run}, ${e.input_tokens}, ${e.output_tokens}, ${e.est_cost_usd}, ${e.ms})
+      returning id`;
+    return rows[0]?.id != null ? Number(rows[0].id) : null;
   } catch (err) {
     console.error("log failed", err);
+    return null;
   }
+}
+
+/** A logged question, for re-asking it (Discord's Think harder button). */
+export async function loggedQuestion(id: number): Promise<{ question: string; asker: string | null } | null> {
+  const rows = await getBookkeeper()`select question, asker from league_qa.questions where id = ${id}`;
+  return rows[0] ? { question: String(rows[0].question), asker: rows[0].asker ?? null } : null;
+}
+
+/**
+ * Which manager a Discord account belongs to. Russ lists each manager's Discord username in
+ * league_qa.discord_members; the first time someone on the list uses Franny, their Discord user id
+ * is saved too, so a later username change doesn't break the match.
+ */
+export async function managerForDiscord(userId: string, names: string[], save = true): Promise<string | null> {
+  const handles = [...new Set(names.filter(Boolean).map((n) => n.trim().toLowerCase().replace(/^@/, "")))];
+  const sql = getBookkeeper();
+  // Names travel as one string split in SQL (unit-separator delimited); Discord names can't contain it.
+  const joined = handles.join("\u001f");
+  const rows = await sql`
+    select handle, manager_name, discord_user_id from league_qa.discord_members
+    where discord_user_id = ${userId} or handle = any(string_to_array(${joined}::text, chr(31)))
+    order by (discord_user_id = ${userId}) desc nulls last
+    limit 1`;
+  const row = rows[0];
+  if (!row) return null;
+  if (save && userId && !row.discord_user_id) {
+    await sql`update league_qa.discord_members set discord_user_id = ${userId}
+              where handle = ${row.handle} and discord_user_id is null`;
+  }
+  return String(row.manager_name);
+}
+
+export async function discordMembers(): Promise<Record<string, unknown>[]> {
+  const rows = await getBookkeeper()`
+    select handle, manager_name, discord_user_id is not null as seen from league_qa.discord_members order by manager_name`;
+  return Array.from(rows as unknown as Record<string, unknown>[]);
 }

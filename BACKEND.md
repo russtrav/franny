@@ -83,3 +83,30 @@ answer as a follow-up. Pass `client: "discord"` when logging.
 `index.html` (GitHub Pages, https://russtrav.github.io/franny/) calls the function with
 `Content-Type: text/plain` so browsers make a simple request with no CORS preflight. Set
 `LEAGUE_ALLOWED_ORIGINS` to `https://russtrav.github.io` so other websites can't call it from a browser.
+
+## Discord
+
+`supabase/functions/franny-discord` is the bot. Discord's **Interactions Endpoint URL** points at
+`https://seqvzektwxxypdcqgtve.supabase.co/functions/v1/franny-discord`.
+
+- `/franny question:<text>`: Franny replies "thinking…" at once (Discord allows 3 seconds), then edits
+  the reply with the answer, a phone-width table (top 10 rows), a **Think harder** button and an
+  **Open Franny** link. Same question logic, same 100-a-day budget as the page.
+- No passcode in Discord. Being in the server is the pass.
+- "My" questions: `league_qa.discord_members` maps Discord usernames (lowercase) to managers. The first
+  time a listed person uses Franny, their Discord user id is saved too, so a username change later
+  doesn't break the match. Unlisted people can still ask anything that doesn't say "my".
+- Secrets: `DISCORD_APPLICATION_ID`, `DISCORD_PUBLIC_KEY`, `DISCORD_BOT_TOKEN` (the token is only used to
+  register the command).
+- Admin actions (POST with `{ "passcode": "…" }`): `?admin=register` registers `/franny`,
+  `?admin=members` lists the username map, `?admin=preview` with `question` (and optional `as`, a
+  Discord username) returns the message Franny would post, without touching Discord.
+
+```sql
+-- Add or fix a manager's Discord username
+insert into league_qa.discord_members (handle, manager_name) values ('their_username', 'Tom')
+on conflict (handle) do update set manager_name = excluded.manager_name;
+```
+
+Tests: `deno test -A tests/discord_test.ts` plays Discord (signed requests, PING, deferred reply,
+table width, Think harder button).

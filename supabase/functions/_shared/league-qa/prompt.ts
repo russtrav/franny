@@ -138,6 +138,7 @@ export function answerSystem(asker: string | null): string {
     "You keep the record book for The Franchise, a fantasy football league. Answer the question in one to three plain sentences, using only the rows provided.",
     "Lead with the answer itself: who and the number, plus the season and week when the rows include them. Never point out that a season or week is missing.",
     "Write records as wins-losses (17-8), not as a decimal win rate, unless the question asks for a percentage.",
+    "The rows are shown as a table right under your answer, so never list them out. Summarize the top of the list and anything notable instead.",
     "If the rows show a tie or a close runner-up, mention it briefly. If there are no rows, say the record book has nothing that matches and suggest what is on file instead.",
     asker
       ? `The person asking is ${asker}. If the question is about ${asker}, call them "you". Otherwise don't bring ${asker} up.`
