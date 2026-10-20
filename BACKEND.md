@@ -43,7 +43,7 @@ No key of any kind is in the page. The function never uses the service role for 
 
 `POST https://seqvzektwxxypdcqgtve.supabase.co/functions/v1/league-ask`, JSON body:
 
-- `{ "action": "hello", "passcode": "…" }` → manager list, today's usage, what's on file
+- `{ "action": "hello", "passcode": "…" }` → manager list, champions (for the plaque), today's usage, what's on file
 - `{ "action": "ask", "passcode": "…", "question": "…", "asker": "Tom", "deep": false }`
   → `{ ok, answer, reading, columns, rows, row_count, truncated, sql, remaining_today, … }`
   or `{ ok: false, code, message }` with code `bad_passcode`, `daily_cap`, `needs_asker`,
@@ -77,3 +77,9 @@ answer as a follow-up. Pass `client: "discord"` when logging.
 ## Tests
 
 `deno run -A tests/guard_test.ts` checks the query guard against 27 allowed and blocked queries.
+
+## The page
+
+`index.html` (GitHub Pages, https://russtrav.github.io/franny/) calls the function with
+`Content-Type: text/plain` so browsers make a simple request with no CORS preflight. Set
+`LEAGUE_ALLOWED_ORIGINS` to `https://russtrav.github.io` so other websites can't call it from a browser.
