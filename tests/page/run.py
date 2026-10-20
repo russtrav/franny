@@ -150,6 +150,34 @@ with sync_playwright() as p:
             check(all(ct and ct.startswith("text/plain") for ct in state["content_types"]), f"[{tag}] requests are simple text/plain (no CORS preflight)")
             check(not errors, f"[{tag}] no page errors {errors[:3]}")
             ctx.close()
+    # Unlock link: #passcode opens straight in and is wiped from the address bar.
+    for scheme in ["light"]:
+        ctx = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme=scheme)
+        page = ctx.new_page()
+        state = {"calls": [], "content_types": []}
+        page.route(ENDPOINT, router(state)); font_routes(page)
+        page.goto(PAGE + "#keeper-sleeper-flex-18")
+        page.wait_for_selector("#app:not([hidden])")
+        check(page.is_hidden("#gate"), "[link] unlock link skips the passcode screen")
+        check("#" not in page.url and "keeper" not in page.url, f"[link] passcode wiped from the address bar ({page.url})")
+        check(page.evaluate("localStorage.getItem('franny.passcode')") == "keeper-sleeper-flex-18", "[link] passcode remembered on the device")
+        page.click("#skipPick")
+        page.goto(PAGE)  # plain link afterwards still works
+        page.wait_for_selector("#app:not([hidden])")
+        check(page.is_hidden("#gate"), "[link] plain link works after unlocking once")
+        ctx.close()
+
+        ctx = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme=scheme)
+        page = ctx.new_page()
+        state = {"calls": [], "content_types": []}
+        page.route(ENDPOINT, router(state)); font_routes(page)
+        page.goto(PAGE + "#old-passcode")
+        page.wait_for_selector("#gate:not([hidden])")
+        page.wait_for_selector("#gateNotice:not([hidden])")
+        check("old passcode" in page.inner_text("#gateNotice"), "[link] link with a wrong passcode explains itself")
+        check(page.evaluate("localStorage.getItem('franny.passcode')") is None, "[link] wrong passcode not remembered")
+        ctx.close()
+
     browser.close()
 
 print("\n%d problem(s)" % len(problems))

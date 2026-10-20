@@ -6,6 +6,16 @@
 <title>Franny</title>
 <meta name="description" content="Ask Franny anything about The Franchise since 2011.">
 <meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Franny: The Franchise record book">
+<meta property="og:description" content="Ask anything about the league since 2011: records, streaks, rivalries, auction prices.">
+<meta property="og:image" content="https://russtrav.github.io/franny/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#3B2618" data-embed>
+<link rel="apple-touch-icon" href="img/icon-180.png">
+<meta name="apple-mobile-web-app-title" content="Franny">
 <meta name="theme-color" content="#EDF0F3" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#14213A" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='14' width='56' height='36' rx='5' fill='%23C49A3A'/%3E%3Crect x='9' y='19' width='46' height='26' rx='3' fill='none' stroke='%237A5A17' stroke-width='2'/%3E%3Ctext x='32' y='41' text-anchor='middle' font-family='Georgia,serif' font-size='24' fill='%233A2A0E'%3EF%3C/text%3E%3C/svg%3E">
@@ -344,8 +354,18 @@ footer p{margin:0;max-width:72ch}
     code: store.get(KEY.code),
     asker: store.get(KEY.asker),
     managers: [], champions: [], cap: 100, deepCost: 5, used: 0,
-    busy: false, last: null, pendingAfterPick: null
+    busy: false, last: null, pendingAfterPick: null, fromLink: false
   };
+
+  // Unlock link: https://…/franny/#<passcode>. Take the passcode from the address, then wipe it
+  // from the address bar (and history) so it isn't left on screen or in a copied link.
+  (function () {
+    var h = "";
+    try { h = decodeURIComponent((location.hash || "").replace(/^#/, "")).replace(/^(code|passcode)=/i, "").trim(); } catch (e) {}
+    if (!h) return;
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    if (h !== S.code) { S.code = h; S.fromLink = true; }
+  })();
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -401,6 +421,7 @@ footer p{margin:0;max-width:72ch}
     return call({ action: "hello", passcode: code }, 20000).then(function (r) {
       if (r.ok) {
         S.code = code;
+        S.fromLink = false;
         store.set(KEY.code, code);
         applyHello(r);
         store.set(KEY.hello, JSON.stringify({ managers: r.managers, champions: r.champions, daily_cap: r.daily_cap, deep_cost: r.deep_cost }));
@@ -410,11 +431,14 @@ footer p{margin:0;max-width:72ch}
       }
       if (r.code === "bad_passcode") {
         var hadOne = !!store.get(KEY.code);
+        var viaLink = S.fromLink;
         store.del(KEY.code);
-        S.code = null;
-        showGate(hadOne && $("gate").hidden
-          ? "The league passcode has changed. Enter the new one."
-          : "That passcode isn't right. Ask in the league chat for it.");
+        S.code = null; S.fromLink = false;
+        showGate(viaLink
+          ? "That link has an old passcode. Ask in the league chat for the current link, or enter the passcode."
+          : hadOne && $("gate").hidden
+            ? "The league passcode has changed. Enter the new one."
+            : "That passcode isn't right. Ask in the league chat for it.");
         return false;
       }
       if ($("gate").hidden && S.code) {
@@ -705,7 +729,7 @@ footer p{margin:0;max-width:72ch}
   /* ---------- start ---------- */
   if (S.code) {
     // Open straight away with what this device remembers; hello() refreshes names, champions and the budget.
-    try { var cached = JSON.parse(store.get(KEY.hello) || "null"); if (cached) { applyHello(cached); openApp(); } } catch (e) {}
+    try { var cached = JSON.parse(store.get(KEY.hello) || "null"); if (cached && !S.fromLink) { applyHello(cached); openApp(); } } catch (e) {}
     hello(S.code);
   } else {
     showGate();
