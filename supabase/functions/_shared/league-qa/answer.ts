@@ -82,14 +82,14 @@ function userTurn(input: AskInput): string {
   return `${askerLine(input.asker)}\nQuestion: ${input.question}`;
 }
 
-function rowsForModel(r: QueryResult, limit: number): string {
+export function rowsForModel(r: QueryResult, limit: number): string {
   let json = JSON.stringify(r.rows.slice(0, limit));
   if (json.length > 12_000) json = json.slice(0, 12_000) + " …";
   const note = r.rowCount > limit ? `, first ${limit} shown` : "";
   return `(${r.rowCount}${r.truncated ? "+" : ""} rows${note}) ${json}`;
 }
 
-async function runGuarded(sql: unknown, denied: string[]): Promise<{ sql: string; result: QueryResult }> {
+export async function runGuarded(sql: unknown, denied: string[]): Promise<{ sql: string; result: QueryResult }> {
   const g = guardSql(sql, denied);
   if (!g.ok) throw new QueryError(g.reason, "guard");
   return { sql: g.sql, result: await runReadOnly(g.sql) };

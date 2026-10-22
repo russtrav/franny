@@ -81,7 +81,7 @@ const RULES = `RULES:
 - If the data cannot answer it exactly (player stats outside 2013, playoff scores, the 2026 season), write a query for the closest thing the data does support and say so in "reading".
 - If the question has nothing to do with this league's history, write a query that lists what is on file per season and say so in "reading".`;
 
-const EXAMPLES = `EXAMPLES:
+export const EXAMPLES = `EXAMPLES:
 Q: Longest win streak of all time
 ${STREAK_SQL}
 

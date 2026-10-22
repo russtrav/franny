@@ -132,3 +132,44 @@ insert into league_qa.easter_eggs (pattern, reply) values ('\bfumbles?\b', 'Your
 select id, pattern, reply, active from league_qa.easter_eggs order by id;
 update league_qa.easter_eggs set active = false where id = 1;
 ```
+
+## Fun facts (preview only, not posting yet)
+
+Franny can dig up a league stat on its own and, once approved, drop it into the league Discord at
+random times. Today it only writes previews for review; the deployed `franny-facts` function has no
+code that can post, and the schedule is off.
+
+**How a fact is made** (`_shared/league-qa/facts.ts`):
+
+1. Pick a slot and a starting angle (this week's matchup, last week in context, season pace, this week
+   in history, streaks, auction, luck, rivalries, champions, scoring extremes, the 2013 vault, oddities).
+   Angles used in the last three facts are skipped when there's another choice.
+2. Claude Sonnet 5.5 runs up to 8 read-only queries (same guard and `league_reader` login as
+   questions) and writes a headline, a fact of 280 characters or less, and picks a receipts table.
+   It also sees this season's standings and scores from the ESPN sync (`league_qa.franchise_now()`)
+   and every fact already posted, so it doesn't repeat itself and spreads the spotlight around.
+3. A separate fact-check pass checks every number against the query results. A rejected draft gets
+   one fix attempt; low-confidence or still-unsupported facts are kept as `skipped`, never posted.
+4. Everything is logged to `league_qa.fun_facts` with every query it ran. About 5¢ and 15 seconds a fact.
+
+**Proposed schedule** (`league_qa.plan_next_fun_fact()`, awaiting approval): recap on Tuesday,
+wildcard Wednesday or Thursday, preview Friday or Saturday; nothing Sunday or Monday; a random minute
+10am–9pm Eastern; 12+ hours apart; off-season about once a week.
+
+**Admin** (POST `https://seqvzektwxxypdcqgtve.supabase.co/functions/v1/franny-facts`, header
+`x-franny-token` from vault secret `franny_facts_token`, or `{ "passcode": "…" }`):
+`?admin=preview` with optional `slot` and `angle` writes one preview (30 a day max);
+`?admin=status` shows settings, season state and the latest facts.
+
+```sql
+-- Read the latest facts
+select id, created_at, status, slot, angle, headline, fact, check_note, est_cost_usd
+from league_qa.fun_facts order by id desc limit 20;
+
+-- Settings (enabled stays false until posting is approved)
+select * from league_qa.fun_fact_settings;
+update league_qa.fun_fact_settings set enabled = false;  -- off switch
+```
+
+Tests: `deno test -A tests/facts_test.ts` (season text, angle picking, and a check that the
+preview build can't reach Discord).

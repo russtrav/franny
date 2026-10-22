@@ -12,5 +12,6 @@ with the numbers underneath.
 
 - Query guard: `deno run -A tests/guard_test.ts`
 - Discord bot: `deno test -A tests/discord_test.ts`
+- Fun facts: `deno test -A tests/facts_test.ts`
 - Page: `python3 tests/page/run.py` drives the page in Chromium (phone and desktop, light and dark)
   against captured responses in `tests/page/fixtures.json`.

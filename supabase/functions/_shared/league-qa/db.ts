@@ -5,6 +5,7 @@
 //    statements against the private league_qa schema (daily cap + question log).
 import postgres from "npm:postgres@3.4.5";
 import type { Manager } from "./prompt.ts";
+import type { QueryLog, RecentFact, SeasonNow } from "./facts.ts";
 
 export const MAX_ROWS = 200;
 const MAX_CELL_CHARS = 300;
@@ -282,5 +283,102 @@ export async function easterEgg(question: string): Promise<string | null> {
 export async function discordMembers(): Promise<Record<string, unknown>[]> {
   const rows = await getBookkeeper()`
     select handle, manager_name, discord_user_id is not null as seen from league_qa.discord_members order by manager_name`;
+  return Array.from(rows as unknown as Record<string, unknown>[]);
+}
+
+// ---------- fun facts ----------
+
+/** The current season from the ESPN sync (standings and schedule only), or null if there's none. */
+export async function seasonNow(): Promise<SeasonNow | null> {
+  const rows = await getBookkeeper()`select league_qa.franchise_now() as s`;
+  return (rows[0]?.s as SeasonNow | null) ?? null;
+}
+
+/** The shared secret the scheduler sends as x-franny-token (vault secret franny_facts_token). */
+export async function factsToken(): Promise<string> {
+  const rows = await getBookkeeper()`
+    select decrypted_secret as t from vault.decrypted_secrets where name = 'franny_facts_token'`;
+  return String(rows[0]?.t ?? "");
+}
+
+/** Facts already out (and recent previews, when asked), newest first, so new ones don't repeat them. */
+export async function recentFacts(includePreviews: boolean, n = 15): Promise<RecentFact[]> {
+  const rows = await getBookkeeper()`
+    select headline, fact, angle, coalesce(managers, '{}') as managers,
+           coalesce(posted_at, finished_at, created_at) as at
+    from league_qa.fun_facts
+    where headline is not null and fact is not null
+      and (status = 'posted'
+           or (${includePreviews}::boolean and status = 'preview' and created_at > now() - interval '3 days'))
+    order by coalesce(posted_at, finished_at, created_at) desc
+    limit ${n}`;
+  return Array.from(rows as unknown as RecentFact[]).map((r) => ({
+    headline: String(r.headline), fact: String(r.fact), angle: r.angle ?? null,
+    managers: Array.isArray(r.managers) ? r.managers.map(String) : [], at: String(r.at),
+  }));
+}
+
+export async function factSettings(): Promise<Record<string, unknown>> {
+  const rows = await getBookkeeper()`select * from league_qa.fun_fact_settings where id`;
+  return (rows[0] ?? {}) as Record<string, unknown>;
+}
+
+/** How many facts with this trigger were started today (Eastern). */
+export async function factsStartedToday(trigger: string): Promise<number> {
+  const rows = await getBookkeeper()`
+    select count(*)::int as n from league_qa.fun_facts
+    where trigger = ${trigger}
+      and (created_at at time zone 'America/New_York')::date = (now() at time zone 'America/New_York')::date`;
+  return Number(rows[0]?.n ?? 0);
+}
+
+export async function startFact(f: { trigger: string; slot: string; angle: string }): Promise<number> {
+  const rows = await getBookkeeper()`
+    insert into league_qa.fun_facts (trigger, slot, angle) values (${f.trigger}, ${f.slot}, ${f.angle})
+    returning id`;
+  return Number(rows[0].id);
+}
+
+export type FactRecord = {
+  status: "preview" | "posted" | "skipped" | "failed";
+  headline: string | null;
+  fact: string | null;
+  managers: string[];
+  confidence: string | null;
+  check_note: string | null;
+  sql: string | null;
+  columns: string[];
+  rows: Record<string, unknown>[];
+  queries: QueryLog[];
+  model: string | null;
+  queries_run: number;
+  input_tokens: number;
+  output_tokens: number;
+  est_cost_usd: number;
+  ms: number;
+  error_detail: string | null;
+};
+
+export async function finishFact(id: number, r: FactRecord): Promise<void> {
+  const sql = getBookkeeper();
+  await sql`
+    update league_qa.fun_facts set
+      status = ${r.status}, finished_at = now(),
+      headline = ${r.headline}, fact = ${r.fact}, managers = ${sql.array(r.managers)},
+      confidence = ${r.confidence}, check_note = ${r.check_note}, sql = ${r.sql},
+      columns = ${sql.json(r.columns)}, rows = ${sql.json(r.rows as unknown as Record<string, never>[])},
+      queries = ${sql.json(r.queries as unknown as Record<string, never>[])},
+      model = ${r.model}, queries_run = ${r.queries_run}, input_tokens = ${r.input_tokens},
+      output_tokens = ${r.output_tokens}, est_cost_usd = ${r.est_cost_usd}, ms = ${r.ms},
+      error_detail = ${r.error_detail?.slice(0, 1000) ?? null}
+    where id = ${id}`;
+}
+
+/** The latest facts, for the status action. */
+export async function latestFacts(n = 10): Promise<Record<string, unknown>[]> {
+  const rows = await getBookkeeper()`
+    select id, created_at, status, trigger, slot, angle, headline, fact, confidence, check_note,
+           queries_run, est_cost_usd, ms
+    from league_qa.fun_facts order by id desc limit ${n}`;
   return Array.from(rows as unknown as Record<string, unknown>[]);
 }
